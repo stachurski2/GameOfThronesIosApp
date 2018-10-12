@@ -27,7 +27,9 @@ typedef enum dataSourceType : NSUInteger {
 
 @property dataSourceType dst;
 
-@property NSMutableArray* extentedCells; 
+@property NSMutableArray* extentedCells;
+
+@property NSMutableArray* cellsHeight;
 
 @end
 

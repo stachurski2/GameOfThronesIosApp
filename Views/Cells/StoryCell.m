@@ -41,6 +41,7 @@
     [self.myView addSubview:_buttonGoToWiki];
     [self.myView addSubview:_buttonShowLess];
     [self.myView addSubview:_buttonAddToFavorites];
+    self.image.contentMode = UIViewContentModeScaleAspectFit;
     
     [_buttonGoToWiki setTitleColor:UIColor.blueColor forState:UIControlStateNormal];
     [_buttonAddToFavorites setTitleColor:UIColor.blueColor forState:UIControlStateNormal];
@@ -65,30 +66,22 @@
         else {
                         dispatch_async(dispatch_get_main_queue(), ^{
                             [self.image sd_setImageWithURL:[NSURL URLWithString:URL] completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
-                                [self.labelTitle  mas_remakeConstraints:^(MASConstraintMaker *make) {
-                                    make.top.equalTo(self->_myView.mas_top).offset(10);
-                                    make.width.equalTo(self->_myView.mas_width);
-                                    make.left.equalTo(self->_buttonAddToFavorites.mas_right).inset(10);
-                                }];
-                                
+
                                 [self.labelAbstract mas_remakeConstraints:^(MASConstraintMaker *make) {
                                     make.top.equalTo(self->_labelTitle.mas_bottom).offset(10);
-                                    make.width.equalTo(self->_myView.mas_width).multipliedBy(0.7);
                                     make.left.equalTo(self->_myView.mas_left).offset(10);
+                                    make.right.equalTo(self->_myView.mas_right).offset(-100);
                                 }];
                                 
-                                
-                                
-                                [self.image mas_remakeConstraints:^(MASConstraintMaker *make) {
-                                    make.centerY.equalTo(self->_myView.mas_centerY);
-                                    make.right.equalTo(self->_myView.mas_right).inset(10).priority(1);
+                                [self.image mas_makeConstraints:^(MASConstraintMaker *make) {
+                                    make.right.equalTo(self->_myView.mas_right).inset(10);
                                     make.left.equalTo(self->_labelAbstract.mas_right).offset(10);
-                                    make.width.equalTo(self->_myView.mas_width).multipliedBy(0.22);
-                                    make.height.equalTo(self->_image.mas_width).multipliedBy(self->_image.image.size.height/self->_image.image.size.width);
+                                    make.top.equalTo(self->_labelTitle.mas_bottom).offset(10);
+                                    make.bottom.lessThanOrEqualTo(self.mas_bottom).inset(10);
+                                    
                                 }];
                             }];
                         });
-      
         }
 
 }
@@ -96,18 +89,9 @@
 
 -(void) extendCell {
     _labelAbstract.numberOfLines = 0;
-    [_labelTitle sizeToFit];
     [_labelAbstract sizeToFit];
-    
-    [self.buttonGoToWiki mas_updateConstraints:^(MASConstraintMaker *make) {
-        make.width.equalTo(@100);
-        make.height.equalTo(@10);
-    }];
-    
-
-    
-    
-
+    [self.buttonGoToWiki setHidden:NO];
+    [self updateConstraints];
 }
 
 -(void)setupConstraints {
@@ -126,41 +110,23 @@
     [self.labelTitle mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self->_myView.mas_top).offset(10);
         make.width.equalTo(self->_myView.mas_width);
-        make.left.equalTo(self->_buttonAddToFavorites.mas_right).inset(10);
-    //        if(self.image == nil) {
-    //            make.right.equalTo(self->_myView.mas_right).inset(10);
-    //        } else {
-    //            make.right.equalTo(self->_image.mas_left).inset(10);
-    //        }
+        make.centerX.equalTo(self->_myView.mas_centerX);
     }];
     
     [self.labelAbstract mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self->_labelTitle.mas_bottom).offset(10);
         make.left.equalTo(self->_myView.mas_left).offset(10);
-        make.width.equalTo(self->_myView.mas_width).multipliedBy(0.9);
+        make.right.equalTo(self->_myView.mas_right).offset(-10);
     }];
-    
-
-
     
     [self.buttonGoToWiki mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.width.equalTo(@1);
-        make.height.equalTo(@1);
+        make.width.equalTo(@100);
+        make.height.equalTo(@10);
         make.centerX.equalTo(self->_myView.mas_centerX);
         make.top.equalTo(self->_labelAbstract.mas_bottom).offset(5);
-        make.bottom.equalTo(self->_myView.mas_bottom).inset(5);
-        
+        make.bottom.equalTo(self->_myView.mas_bottom).inset(-15);
     }];
     
-    
-    [self.image mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.right.equalTo(self->_myView.mas_right).offset(-50);
-        make.centerY.equalTo(self->_myView.mas_centerY);
-        make.width.equalTo(@1);
-        make.height.equalTo(@1);
-    }];
-    
-
     
     
 }

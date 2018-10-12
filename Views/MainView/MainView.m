@@ -93,8 +93,7 @@ const int leftMenuWitdh = 250;
 
 -(void)hideMenu {
     CGAffineTransform totalTransform = CGAffineTransformIdentity;
-    [self.menu setTransform:totalTransform];
-    
+    [self.menu setTransform:totalTransform];    
 }
 
 

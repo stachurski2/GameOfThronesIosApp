@@ -87,25 +87,37 @@
         } else {
              StoryCell *cell = [self.contentView.tableView cellForRowAtIndexPath:indexPath];
              [cell extendCell];
+            NSLog(@"%f",cell.frame.size.height);
+
             [_contentView.tableView beginUpdates];
-            [_contentView.tableView endUpdates];            
+            [_contentView.tableView endUpdates];
+            _extentedCells[indexPath.row] = [NSNumber numberWithBool:YES];
+            NSLog(@"%f",cell.frame.size.height);
+            _cellsHeight[indexPath.row] = [NSNumber numberWithFloat:cell.frame.size.height];
         }
     
 }
+
 
 - (void)configureBlock {
     void (^block)(NSDictionary* dic) = ^(NSDictionary* dic) {
         self.stories = [NSMutableArray array];
         NSArray *items = dic[@"items"];
+        self->_extentedCells =  [[NSMutableArray alloc] init];
+        self->_cellsHeight = [[NSMutableArray alloc] init];
         for(int i=0;i<items.count;i++){
             NSDictionary *item = items[i];
             Story *s = [[Story alloc] initWith:item[@"title"] :item[@"abstract"] :item[@"thumbnail"] :item[@"url"]];
             s.abstract = item[@"abstract"];
+            [self->_extentedCells addObject:[NSNumber numberWithBool:NO]];
+            [self->_cellsHeight addObject:[NSNumber numberWithFloat:0]];
             [self.stories addObject:s];
         }
+     
         NSLog(@"%lu",(unsigned long)self.stories.count);
         dispatch_sync(dispatch_get_main_queue(), ^{
             [self->_contentView.tableView reloadData];
+          
         });
     };
     
@@ -128,17 +140,16 @@
     static NSString *cellIdentifier = @"cellIdentifier";
     StoryCell *cell = (StoryCell*)[tableView dequeueReusableCellWithIdentifier:cellIdentifier];
     cell = [[StoryCell new] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:cellIdentifier];
-  
-
+    
+    NSString *thumbnail = @"";
     
     if(_dst == realm) {
         RLMResults<RealmStory *> *realmStories = [RealmStory allObjects];
         RealmStory *s = realmStories[indexPath.row];
         cell.labelTitle.text = s.title;
         cell.labelAbstract.text = s.abstract;
-        NSLog(@"%@", s.thumbnail);
+        thumbnail  = s.thumbnail;
         
-        [cell loadImageFrom:s.thumbnail];
         void (^action)(void) = ^(){
             NSString *base = @"http://gameofthrones.wikia.com/";
             base =  [base stringByAppendingString:s.url];
@@ -178,7 +189,8 @@
             Story *s = _stories[indexPath.row];
             cell.labelTitle.text = s.title;
             cell.labelAbstract.text = s.abstract;
-            [cell loadImageFrom:s.thumbnail];
+            thumbnail = s.thumbnail;
+            
             void (^action)(void) = ^(){
                 NSString *base = @"http://gameofthrones.wikia.com/";
                 base =  [base stringByAppendingString:s.url];
@@ -190,9 +202,6 @@
                 }
             };
             cell.detailAction = action;
-           
-
-            
                 NSString *firstString = @"url == \'";
                 firstString = [firstString stringByAppendingString:s.url];
                 firstString = [firstString stringByAppendingString:@"\'"];
@@ -215,23 +224,34 @@
                 }];
             };
             
-            
-          
-            
             RLMResults<RealmStory *> *favs = [RealmStory objectsWhere:firstString];
             
             if(favs.count>0){
                  [cell.buttonAddToFavorites setImage:[UIImage imageNamed:@"MarkedStar"] forState:UIControlStateNormal];
                  [cell.buttonAddToFavorites addTarget:cell action:@selector(deleteFromFav) forControlEvents:UIControlEventTouchUpInside];
-
             } else {
                 [cell.buttonAddToFavorites setImage:[UIImage imageNamed:@"Star"] forState:UIControlStateNormal];
                 [cell.buttonAddToFavorites addTarget:cell action:@selector(addToFav) forControlEvents:UIControlEventTouchUpInside];
             }
+            
+ 
+            
         }
+    
+        
     }
+        
     }
     [cell setupConstraints];
+    
+    if (_extentedCells[indexPath.row] == [NSNumber numberWithBool:YES]) {
+        {
+            [cell extendCell];
+        }
+    }
+
+   [cell loadImageFrom:thumbnail];
+    
     return cell;
 }
 
@@ -240,7 +260,15 @@
 
     switch (_dst) {
             case realm:
+            
+            _extentedCells = [NSMutableArray array];
+            _cellsHeight = [NSMutableArray array];
+            for(int i=0;i < favs.count; i++) {
+                [_extentedCells addObject:[NSNumber numberWithBool:NO]];
+                [_cellsHeight addObject:[NSNumber numberWithFloat:82]];
+            }
             return favs.count;
+            
             break;
             case web:
                 if(self.stories.count == 0) {
@@ -294,14 +322,14 @@
 - (void)updateFocusIfNeeded {
     
 }
-- (CGFloat)tableView:(UITableView *)tableView estimatedHeightForRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    return 100;
-}
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    return UITableViewAutomaticDimension;
+      if (_extentedCells[indexPath.row] == [NSNumber numberWithBool:YES]) {
+              return [_cellsHeight[indexPath.row] floatValue];
+      } else {
+          return UITableViewAutomaticDimension;
+      }
 }
 
 -(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
